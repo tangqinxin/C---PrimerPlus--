@@ -1,0 +1,66 @@
+本文希望根据我自己的理解，阐述C++中关于函数重写，函数重定义，覆盖，隐藏的概念问题。
+
+1 重写
+  C++中的函数重写，其实就是覆盖。即  覆盖==函数重写==虚函数。它对外表现出来的就是，根据创建的具体对象来调用具体的对象方法。比如father和son对象都有virtual a方法，并且都通过指针调用。
+  由虚函数可知，我们指针创建的是什么对象，那么使用的就是什么对象的方法，并且这个是我们大多数时候希望的特性。C++11中加入了override标识符，用来标志一个函数是覆盖的，也就是告诉别人，
+  这个函数会根据你创建的具体对象有不同的行为，它是一个虚方法。
+  
+  说到这里，你就很容易判断什么样是覆盖/重写了。如果f2重写/覆盖了f1函数，那么显然f1，f2会分别在父类和子类中，并且父类f1是有virtual的；我们再加上一个条件，就是函数特征标完全相同，满足
+  这些条件就是函数重写/覆盖了。
+  
+2 重定义
+  C++中的函数重定义，就是隐藏。 即 隐藏==函数重定义。它对外表现的就是，什么指针调用什么方法。也就是为什么会产生虚函数的原因，因为这个特性常常是我们所不希望的（什么指针就调用什么方法，
+  完全不看对象是什么）。说到这里，你可能已经对重定义的例子有些了解了。
+  
+  显然，如果f1，f2分别在父类子类中，并且f1没有使用vitual，但是他们特征标相同，那么还是重定义/隐藏的，即此时会根据指针来判断使用什么方法；这个情况下如果使用了virtual，那就是上面的重写了，
+  可谓是一念天堂一念地狱。
+  
+  第二种情况就是特征标不同，此时不管有没有virtual，都是重定义。
+  
+3 其他的补充
+  通过类直接调用，此时只会调用类域名内的函数。什么意思？如下
+  base a;
+  son b;
+  b.f();//调用son的方法，因为是son对象直接用‘.’来调用
+  a.f();//调用base方法
+  
+4 一些测试代码
+
+#include<iostream>
+using namespace std;
+
+
+class Base
+{
+public:
+	virtual void f(float x) { cout << "Base::f(float) " << x << endl; }
+	void g(float x) { cout << "Base::g(float) " << x << endl; }
+	void h(float x) { cout << "Base::h(float) " << x << endl; }
+};
+
+class Derived : public Base
+{
+public:
+	//virtual void f(float x)override { cout << "Derived::f(float) " << x << endl; }//覆盖了基类的f
+	virtual void f(int x) { cout << "Derived::f(int) " << x << endl; }//隐藏了基类的f
+	void g(int x) { cout << "Derived::g(int) " << x << endl; }
+	void h(float x) { cout << "Derived::h(float) " << x << endl; }
+};
+
+
+int main()
+{
+	Derived d;
+	Base *pb = &d;
+	Derived *pd = &d;
+	// Good : behavior depends solely on type of the object//覆盖的情况
+	pb->f(3.14f); // Derived::f(float) 3.14（覆盖）OR Base::f(float) 3.14（隐藏）
+	pd->f(3.14f); // Derived::f(float) 3.
+				  // Bad : behavior depends on type of the pointer
+	pb->g(3.14f); // Base::g(float) 3.14
+	pd->g(3.14f); // Derived::g(int) 3 (surprise!)
+				  // Bad : behavior depends on type of the pointer
+	pb->h(3.14f); // Base::h(float) 3.14 (surprise!)
+	pd->h(3.14f); // Derived::h(float) 3.14
+	return 0;
+}
