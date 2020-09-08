@@ -64,3 +64,45 @@ int main()
 	pd->h(3.14f); // Derived::h(float) 3.14
 	return 0;
 }
+
+
+//2020.9.8更新：增加了一些测试函数和案例
+5 测试代码2
+
+#include<iostream>
+using namespace std;
+
+class base {
+public:
+	base() {
+	}
+	virtual ~base(){}
+	virtual void funa() {
+		cout << "base A"<<endl;
+	}
+	virtual void funb() {
+		cout << "base B" << endl;
+	}
+
+};
+
+class parenet :public base {
+public:
+	parenet(){}
+	~parenet(){}
+	void funa() {
+		cout << "parent A" << endl;
+	}
+	void funb() {
+		cout << "parent B" << endl;
+	}	
+	void funb(char ch) {
+		cout << "parent C" << endl;//函数重定义，如果要调用这个函数，需要使用parent*来新建对象
+	}
+};
+int main() {
+	parenet* a = new parenet;//注意这里要用parent*，如果用base*，编译会报错！
+	char ch = 'a';
+	a->funb(ch);//成功调用，输出"parent C"
+	return 0;
+}
